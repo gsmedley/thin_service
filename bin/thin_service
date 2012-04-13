@@ -4,11 +4,10 @@
 if ARGV.first == "start"
   ARGV.shift
   ARGV = ["exec", "thin", "start"] + ARGV
-  p ARGV
-  Dir.chdir( "C:/Users/Owner/Documents/NetBeansProjects/hgcs" )
-  gem 'bundler', version
-  p 'aa'
 
+  Dir.chdir( ARGV[ARGV.index("-c")+1] )
+  version = "> 0"
+  gem 'bundler', version
   load Gem.bin_path('bundler', 'bundle', version)
 else
   require 'thin_service'
