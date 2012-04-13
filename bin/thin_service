@@ -1,0 +1,17 @@
+#!C:/Ruby193/bin/ruby.exe
+
+
+if ARGV.first == "start"
+  ARGV.shift
+  ARGV = ["exec", "thin", "start"] + ARGV
+  p ARGV
+  Dir.chdir( "C:/Users/Owner/Documents/NetBeansProjects/hgcs" )
+  gem 'bundler', version
+  p 'aa'
+
+  load Gem.bin_path('bundler', 'bundle', version)
+else
+  require 'thin_service'
+  ThinService::Service.new(ARGV).run!
+end
+
