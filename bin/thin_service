@@ -4,8 +4,12 @@
 if ARGV.first == "start"
   ARGV.shift
   ARGV = ["exec", "thin", "start"] + ARGV
-
+  
   Dir.chdir( ARGV[ARGV.index("-c")+1] )
+  
+  # use same ruby for bundle exec, in case global path is different
+  ENV["Path"] = RbConfig::CONFIG['bindir'] + ';' + ENV["Path"]
+  
   version = "> 0"
   gem 'bundler', version
   load Gem.bin_path('bundler', 'bundle', version)
