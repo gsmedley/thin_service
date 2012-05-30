@@ -283,7 +283,7 @@ module ThinService
         puts("#{ThinService::Command::BANNER}\nAvailable commands are:\n\n")
 
         self.commands.each do |name|
-          puts(" - #{name}\n")
+          puts(" - #{name}\n") unless name == "start"
         end
 
         puts("\nEach command takes -h as an option to get help.")
