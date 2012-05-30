@@ -26,7 +26,7 @@
 namespace thin_service
     constructor SingleThin()
         dim redirect_path as string = EXEPATH
-        dim redirect_file as string = "thin.default.log"
+        dim redirect_file as string = "log/thin.service.log"
         dim flag as string
         dim idx as integer = 1
 
