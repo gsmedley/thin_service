@@ -16,7 +16,7 @@ module ThinService
   module Command
 
     BANNER = "Usage: thin_service <command> [options]"
-    COMMANDS = ['start', 'install', 'remove']
+    COMMANDS = ['start', 'install', "installdaemon", 'remove']
 
     class Base
 
@@ -112,7 +112,45 @@ module ThinService
     end
 
     module Commands
+
+      module ServiceInstall
+        def validate_thin_service_exe
+          # check if thin_service.exe is in ruby bindir.
+          gem_root = File.join(File.dirname(__FILE__), "..", "..")
+          gem_executable = File.join(gem_root, "resource/thin_service_wrapper.exe")
+          bindir_executable = File.join(RbConfig::CONFIG['bindir'], '/thin_service_wrapper.exe')
+
+          unless File.exist?(bindir_executable)
+            STDERR.puts "** Copying native thin_service executable..."
+            FileUtils.cp gem_executable, bindir_executable rescue nil
+          end
+
+          unless FileUtils.compare_file(bindir_executable, gem_executable)
+            STDERR.puts "** Updating native thin_service executable..."
+            FileUtils.rm_f bindir_executable rescue nil
+            FileUtils.cp gem_executable, bindir_executable rescue nil
+          end
+
+          bindir_executable
+        end
+
+        def add_service( svc_name, svc_display, argv)
+          begin
+            ServiceManager.create(
+              svc_name,
+              svc_display,
+              argv.join(' ')
+            )
+            puts "#{svc_display} service created."
+          rescue ServiceManager::CreateError => e
+            puts "There was a problem installing the service:"
+            puts e
+          end
+        end
+      end
+
       class Install < ThinService::Command::Base
+        include ServiceInstall
 
         def configure
             options [
@@ -167,20 +205,7 @@ module ThinService
 
         def run
           # check if thin_service.exe is in ruby bindir.
-          gem_root = File.join(File.dirname(__FILE__), "..", "..")
-          gem_executable = File.join(gem_root, "resource/thin_service_wrapper.exe")
-          bindir_executable = File.join(RbConfig::CONFIG['bindir'], '/thin_service_wrapper.exe')
-
-          unless File.exist?(bindir_executable)
-            STDERR.puts "** Copying native thin_service executable..."
-            FileUtils.cp gem_executable, bindir_executable rescue nil
-          end
-
-          unless FileUtils.compare_file(bindir_executable, gem_executable)
-            STDERR.puts "** Updating native thin_service executable..."
-            FileUtils.rm_f bindir_executable rescue nil
-            FileUtils.cp gem_executable, bindir_executable rescue nil
-          end
+          bindir_executable = validate_thin_service_exe
 
           # build the command line
           argv = []
@@ -208,19 +233,75 @@ module ThinService
           # concat remaining non-parsed ARGV
           argv.concat(ARGV)
 
-          begin
-            ServiceManager.create(
-              @svc_name,
-              @svc_display,
-              argv.join(' ')
-            )
-            puts "#{@svc_display} service created."
-          rescue ServiceManager::CreateError => e
-            puts "There was a problem installing the service:"
-            puts e
+          add_service( @svc_name, @svc_display, argv)
+
+         end
+      end
+
+
+      class Installdaemon   < ThinService::Command::Base
+        include ServiceInstall
+        
+        def configure
+            options [
+              ['-N', '--name SVC_NAME', "Required name for the service to be registered/installed.", :@svc_name, nil],
+              ['-D', '--display SVC_DISPLAY', "Adjust the display name of the service.", :@svc_display, nil],
+              ['-t', '--task TASK', "Which task to run", :@command, "rake tm:background:start"],
+              ['-c', '--chdir PATH', "Change to dir before starting (will be expanded)", :@cwd, Dir.pwd],   
+             ]
+        end
+
+        def validate
+          @cwd = File.expand_path(@cwd)
+          valid_dir? @cwd, "Invalid path to change to: #@cwd"
+
+          # change there to start, then we'll have to come back after daemonize
+          Dir.chdir(@cwd)
+
+          valid? @svc_name != nil, "A service name is mandatory."
+          valid? !ServiceManager.exist?(@svc_name), "The service already exist, please remove it first."
+
+          # default service display to service name
+          @svc_display = @svc_name if !@svc_display
+
+          # start with the premise of app really exist.
+          app_exist = true
+          %w{app config log}.each do |path|
+            if !File.directory?(File.join(@cwd, path))
+              app_exist = false
+              break
+            end
           end
+
+          valid? app_exist == true, "The path you specified isn't a valid Rails application."
+
+          return @valid
+        end
+
+        def run
+          bindir_executable = validate_thin_service_exe
+
+          # build the command line
+          argv = []
+
+          # start using the native executable
+          argv << '"' + bindir_executable + '"'
+
+          # force indication of daemon mode
+          argv << "daemon"
+
+          # now the options
+          argv << "-c \"#{@cwd}\"" 
+          argv << "\"#{@command}\""  
+
+
+          # concat remaining non-parsed ARGV
+          argv.concat(ARGV)
+
+          add_service( @svc_name, @svc_display, argv)
         end
       end
+
 
       module ServiceValidation
         def configure

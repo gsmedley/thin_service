@@ -13,8 +13,22 @@ if ARGV.first == "start"
   version = "> 0"
   gem 'bundler', version
   load Gem.bin_path('bundler', 'bundle', version)
+elsif ARGV.first == "daemon"
+  ARGV.shift
+  ARGV.shift
+  Dir.chdir( ARGV.shift )
+  ARGV = ["exec"] + ARGV
+ 
+  # use same ruby for bundle exec, in case global path is different
+  ENV["Path"] = RbConfig::CONFIG['bindir'] + ';' + ENV["Path"]
+  
+  version = "> 0"
+  gem 'bundler', version
+  load Gem.bin_path('bundler', 'bundle', version)
 else
   require 'thin_service'
   ThinService::Service.new(ARGV).run!
 end
+
+
 
