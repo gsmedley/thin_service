@@ -24,12 +24,11 @@ namespace :native do
     define      "GEM_VERSION=\"#{ThinService::VERSION}\""
 
     main        'src/thin_service/thin_service.bas'
-    source      'src/thin_service/console_process.bas'
+    source      'src/thin_service/console_process.bas', "src/ServiceFB/ServiceFB.bas", "src/ServiceFB/ServiceFB_Utils.bas"
 
     search_path 'src/ServiceFB'
 
     lib_path    'builds'
-    library     'ServiceFB', 'ServiceFB_Utils'
     library     'user32', 'advapi32', 'psapi'
 
     option      exe_options

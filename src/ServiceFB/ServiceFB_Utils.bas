@@ -98,7 +98,7 @@ namespace utils   '# fb.svc.utils
         
         '# this process started as service?
         '# that means his parent is services.exe
-        if (parent_name = "services.exe") then
+        if (parent_name = "services.exe" Or  parent_name = "<unknown>") then
             result = RunAsService
         else
             '# ok, it didn't start as service, analyze command line then
@@ -417,6 +417,7 @@ namespace utils   '# fb.svc.utils
         dim GetProcessImageFileName as function (byval as HANDLE, byval as LPTSTR, byval as DWORD) as DWORD
       
         '# assign "<unknown>" to process name, allocate MAX_PATH (260 bytes)
+        result = "<unknown>" 
         zresult = "<unknown>" + chr(0)
     
         '# get dynlib
