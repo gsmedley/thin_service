@@ -1,4 +1,7 @@
 
+# 0.0.6
+ * Fix problems running under Windows 8
+
 # 0.0.5
  * Add ability to run any rake task as a service
  
