@@ -219,7 +219,7 @@ module ThinService
           # now the options
           argv << "-e #{@environment}" if @environment
           argv << "-p #{@port}"
-          argv << "-a #{@host}"  if @host
+          argv << "-a #{@address}"  if @address
           argv << "-c \"#{@cwd}\"" if @cwd
           argv << "-t #{@timeout}" if @timeout
           argv << "-D" if @debug
