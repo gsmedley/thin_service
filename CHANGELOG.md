@@ -1,4 +1,7 @@
 
+# 0.0.7
+ * Fix logging problem for mingw
+
 # 0.0.6
  * Fix problems running under Windows 8
 
