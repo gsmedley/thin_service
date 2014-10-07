@@ -18,7 +18,7 @@ module ThinService
       @logger    = initialize_io(log)
       @log_level = Levels[:name][log_level] || 7
 
-      if !RUBY_PLATFORM.match(/java|mswin/) && !(@log == STDOUT) && 
+      if !RUBY_PLATFORM.match(/java|mswin|mingw/) && !(@log == STDOUT) && 
            @log.respond_to?(:write_nonblock)
         @aio = true
       end
