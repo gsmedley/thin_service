@@ -354,7 +354,7 @@ module ThinService
     # and handles running them.
     class Registry
 
-      # Builds a list of possible commands from the Command derivates list
+      # Builds a list of possible commands from the Command derivatives list
       def commands
         ThinService::Command::COMMANDS
       end
